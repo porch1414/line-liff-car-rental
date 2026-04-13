@@ -5,6 +5,7 @@
   "framework": "vite",
   "rewrites": [
     { "source": "/api/trpc/(.*)", "destination": "/api/server" },
+    { "source": "/api/cars", "destination": "/api/cars" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
