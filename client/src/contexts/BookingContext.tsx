@@ -49,7 +49,7 @@ export function BookingProvider({ children }: { children: React.ReactNode }) {
     const pickup = new Date(dates.pickupDate);
     const returnD = new Date(dates.returnDate);
     const totalDays = Math.max(1, Math.ceil((returnD.getTime() - pickup.getTime()) / (1000 * 60 * 60 * 24)));
-    const totalPrice = car.pricePerDay * totalDays;
+    const totalPrice = car.price_per_day * totalDays;
     const booking: Booking = {
       car,
       dates,

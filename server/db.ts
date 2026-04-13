@@ -127,7 +127,7 @@ export async function getCarById(carId: string): Promise<Car | undefined> {
   }
 
   try {
-    const result = await db.select().from(cars).where(eq(cars.id, carId)).limit(1);
+    const result = await db.select().from(cars).where(eq(cars.id, parseInt(carId))).limit(1);
     return result.length > 0 ? result[0] : undefined;
   } catch (error) {
     console.error("[Database] Failed to get car:", error);

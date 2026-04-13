@@ -49,7 +49,7 @@ export async function sendBookingConfirmation(
       },
       {
         type: "text" as const,
-        text: `${booking.car.brand} ${booking.car.name}\n\n📍 Pickup: ${booking.pickupLocation}\n📅 From: ${pickupDate}\n📅 To: ${returnDate}\n⏱️ Duration: ${booking.totalDays} day${booking.totalDays > 1 ? "s" : ""}\n\n💰 Total: ${formatPrice(booking.totalPrice)}`,
+        text: `${booking.car.name}\n\n📍 Pickup: ${booking.pickupLocation}\n📅 From: ${pickupDate}\n📅 To: ${returnDate}\n⏱️ Duration: ${booking.totalDays} day${booking.totalDays > 1 ? "s" : ""}\n\n💰 Total: ${formatPrice(booking.totalPrice)}`,
       },
       {
         type: "text" as const,

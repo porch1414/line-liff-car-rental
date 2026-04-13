@@ -4,7 +4,7 @@
  */
 import { useState } from "react";
 import { useLocation, useParams } from "wouter";
-import { ArrowLeft, Star, Users, Fuel, Settings, Check, MapPin, Calendar, Loader2 } from "lucide-react";
+import { ArrowLeft, Calendar, Loader2, MapPin } from "lucide-react";
 import { formatPrice } from "@/lib/carData";
 import { useBooking } from "@/contexts/BookingContext";
 import { useLiffContext } from "@/contexts/LiffContext";
@@ -54,7 +54,7 @@ export default function CarDetail() {
   const totalDays = Math.max(1, Math.ceil(
     (new Date(returnDate).getTime() - new Date(pickupDate).getTime()) / (1000 * 60 * 60 * 24)
   ));
-  const totalPrice = car.pricePerDay * totalDays;
+  const totalPrice = car.price_per_day * totalDays;
 
   const handleBooking = async () => {
     if (!isLoggedIn) {
@@ -79,16 +79,22 @@ export default function CarDetail() {
       // Create booking via tRPC API
       const booking = await bookingMutation.mutateAsync({
         lineUserId: profile.userId,
-        lineUserName: profile.displayName,
-        carId: car.id,
+        lineUserName: profile.displayName || "User",
+        carId: String(car.id),
         pickupDate: new Date(pickupDate),
         returnDate: new Date(returnDate),
         pickupLocation,
-        totalPrice,
+        totalPrice: Math.round(totalPrice),
       });
 
-      // Send booking confirmation to LINE chat
-      if (liff) {
+      confirmBooking(car, {
+        pickupDate,
+        returnDate,
+        pickupLocation,
+      });
+
+      // Send LINE message
+      if (liff?.isLoggedIn()) {
         await sendBookingConfirmation(liff, {
           car,
           pickupDate,
@@ -101,7 +107,7 @@ export default function CarDetail() {
       }
 
       toast.success(`Booking confirmed! ID: ${booking?.id}`, {
-        description: `${car.brand} ${car.name} · ${totalDays} day${totalDays > 1 ? "s" : ""} · Message sent to LINE`,
+        description: `${car.name} · ${totalDays} day${totalDays > 1 ? "s" : ""} · Message sent to LINE`,
       });
       navigate("/bookings");
     } catch (error) {
@@ -127,64 +133,31 @@ export default function CarDetail() {
       {/* Car Image */}
       <div className="mx-4 -mt-2 rounded-2xl overflow-hidden bg-[oklch(0.96_0.01_90)] h-56 shadow-sm">
         <img
-          src={car.image || ""}
-          alt={`${car.brand} ${car.name}`}
+          src={car.image_url || ""}
+          alt={car.name}
           className="w-full h-full object-contain p-4"
         />
       </div>
 
       {/* Car Info */}
       <div className="mx-4 mt-4">
-        <div className="flex items-start justify-between mb-2">
-          <div>
-            <p className="text-xs text-muted-foreground">{car.category}</p>
-            <h1 className="text-2xl font-bold text-foreground" style={{ fontFamily: "'Sora', sans-serif" }}>
-              {car.brand} {car.name}
-            </h1>
-          </div>
-          {car.badge && (
-            <div className="bg-[oklch(0.72_0.16_65)] text-white text-xs font-bold px-3 py-1 rounded-full">
-              {car.badge}
-            </div>
-          )}
-        </div>
+        <h1 className="text-2xl font-bold text-foreground mb-2" style={{ fontFamily: "'Sora', sans-serif" }}>
+          {car.name}
+        </h1>
 
-        {/* Rating */}
-        {car.rating && (
-          <div className="flex items-center gap-1 mb-4">
-            <div className="flex items-center gap-0.5">
-              {[...Array(5)].map((_, i) => (
-                <Star
-                  key={i}
-                  size={14}
-                  className={i < Math.floor(car.rating || 0) ? "fill-[oklch(0.72_0.16_65)] text-[oklch(0.72_0.16_65)]" : "text-muted-foreground"}
-                />
-              ))}
-            </div>
-            <span className="text-xs text-muted-foreground">{car.rating} ({car.reviews} reviews)</span>
-          </div>
+        {/* Description */}
+        {car.description && (
+          <p className="text-sm text-muted-foreground mb-4">
+            {car.description}
+          </p>
         )}
 
-        {/* Specs */}
-        <div className="grid grid-cols-3 gap-3 mb-6">
-          {car.seats && (
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <Users size={18} className="text-[oklch(0.42_0.09_200)] mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">{car.seats} Seats</p>
-            </div>
-          )}
-          {car.transmission && (
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <Settings size={18} className="text-[oklch(0.42_0.09_200)] mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">{car.transmission}</p>
-            </div>
-          )}
-          {car.fuelType && (
-            <div className="bg-muted rounded-xl p-3 text-center">
-              <Fuel size={18} className="text-[oklch(0.42_0.09_200)] mx-auto mb-1" />
-              <p className="text-xs text-muted-foreground">{car.fuelType}</p>
-            </div>
-          )}
+        {/* Price */}
+        <div className="bg-muted rounded-xl p-4 mb-6">
+          <p className="text-xs text-muted-foreground mb-1">Daily Rate</p>
+          <p className="text-2xl font-bold text-[oklch(0.42_0.09_200)]">
+            {formatPrice(car.price_per_day)}
+          </p>
         </div>
       </div>
 
@@ -198,12 +171,12 @@ export default function CarDetail() {
         <div className="mb-4">
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Pickup Date</label>
           <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2.5">
-            <Calendar size={16} className="text-[oklch(0.42_0.09_200)]" />
+            <Calendar size={16} className="text-muted-foreground" />
             <input
               type="date"
               value={pickupDate}
               onChange={(e) => setPickupDate(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-foreground outline-none"
+              className="flex-1 bg-transparent text-foreground text-sm focus:outline-none"
             />
           </div>
         </div>
@@ -212,48 +185,53 @@ export default function CarDetail() {
         <div className="mb-4">
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Return Date</label>
           <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2.5">
-            <Calendar size={16} className="text-[oklch(0.42_0.09_200)]" />
+            <Calendar size={16} className="text-muted-foreground" />
             <input
               type="date"
               value={returnDate}
               onChange={(e) => setReturnDate(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-foreground outline-none"
+              className="flex-1 bg-transparent text-foreground text-sm focus:outline-none"
             />
           </div>
         </div>
 
         {/* Pickup Location */}
-        <div className="mb-6">
+        <div className="mb-4">
           <label className="text-xs font-semibold text-muted-foreground mb-2 block">Pickup Location</label>
           <div className="flex items-center gap-2 bg-muted rounded-xl px-3 py-2.5">
-            <MapPin size={16} className="text-[oklch(0.42_0.09_200)]" />
+            <MapPin size={16} className="text-muted-foreground" />
             <input
               type="text"
               value={pickupLocation}
               onChange={(e) => setPickupLocation(e.target.value)}
-              className="flex-1 bg-transparent text-sm text-foreground outline-none"
+              className="flex-1 bg-transparent text-foreground text-sm focus:outline-none"
             />
           </div>
         </div>
 
-        {/* Price Summary */}
-        <div className="bg-[oklch(0.42_0.09_200/0.06)] rounded-xl p-4 mb-6">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-sm text-muted-foreground">{formatPrice(car.pricePerDay)} × {totalDays} day{totalDays > 1 ? "s" : ""}</span>
-            <span className="text-sm font-semibold text-foreground">{formatPrice(totalPrice)}</span>
+        {/* Booking Summary */}
+        <div className="bg-muted rounded-xl p-4 mb-6">
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-muted-foreground">Rental Days</span>
+            <span className="font-semibold text-foreground">{totalDays}</span>
           </div>
-          <div className="border-t border-border pt-2 flex items-center justify-between">
-            <span className="text-sm font-bold text-foreground">Total</span>
+          <div className="flex justify-between items-center mb-2">
+            <span className="text-sm text-muted-foreground">Daily Rate</span>
+            <span className="font-semibold text-foreground">{formatPrice(car.price_per_day)}</span>
+          </div>
+          <div className="border-t border-border pt-2 flex justify-between items-center">
+            <span className="text-sm font-semibold text-foreground">Total</span>
             <span className="text-lg font-bold text-[oklch(0.42_0.09_200)]">{formatPrice(totalPrice)}</span>
           </div>
         </div>
+      </div>
 
-        {/* Book Button */}
+      {/* Book Button */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-border p-4 max-w-[480px] mx-auto">
         <button
           onClick={handleBooking}
           disabled={isBooking}
-          className="w-full bg-[oklch(0.42_0.09_200)] hover:bg-[oklch(0.38_0.09_200)] disabled:opacity-50 text-white font-bold py-3 rounded-xl flex items-center justify-center gap-2 transition-all"
-          style={{ fontFamily: "'Sora', sans-serif" }}
+          className="w-full bg-[oklch(0.42_0.09_200)] text-white font-semibold py-3 rounded-xl hover:bg-[oklch(0.38_0.09_200)] disabled:opacity-50 transition-colors flex items-center justify-center gap-2"
         >
           {isBooking ? (
             <>
@@ -261,10 +239,7 @@ export default function CarDetail() {
               Booking...
             </>
           ) : (
-            <>
-              <Check size={18} />
-              Book Now
-            </>
+            "Confirm Booking"
           )}
         </button>
       </div>

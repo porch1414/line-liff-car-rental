@@ -42,13 +42,12 @@ function BookingCard({ booking, onCancel }: { booking: Booking; onCancel: (id: s
       <div className="flex items-center gap-3 p-4 border-b border-border">
         <div className="w-20 h-14 rounded-xl bg-[oklch(0.96_0.01_90)] overflow-hidden shrink-0">
           <img
-            src={booking.car.image || ""}
+            src={booking.car.image_url || ""}
             alt={booking.car.name}
             className="w-full h-full object-contain p-1"
           />
         </div>
         <div className="flex-1 min-w-0">
-          <p className="text-xs text-muted-foreground">{booking.car.brand}</p>
           <h3 className="font-bold text-foreground text-sm truncate" style={{ fontFamily: "'Sora', sans-serif" }}>
             {booking.car.name}
           </h3>

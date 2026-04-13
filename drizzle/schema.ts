@@ -1,4 +1,4 @@
-import { integer, pgEnum, pgTable, text, timestamp, varchar } from "drizzle-orm/pg-core";
+import { integer, pgEnum, pgTable, text, timestamp, varchar, doublePrecision, boolean } from "drizzle-orm/pg-core";
 
 export const roleEnum = pgEnum("role", ["user", "admin"]);
 
@@ -29,21 +29,12 @@ export type InsertUser = typeof users.$inferInsert;
 
 // Cars table for car rental inventory
 export const cars = pgTable("cars", {
-  id: varchar("id", { length: 64 }).primaryKey(),
-  brand: varchar("brand", { length: 100 }).notNull(),
-  name: varchar("name", { length: 100 }).notNull(),
-  category: varchar("category", { length: 50 }).notNull(),
-  pricePerDay: integer("pricePerDay").notNull(),
-  image: text("image"),
-  rating: integer("rating"),
-  reviews: integer("reviews"),
-  seats: integer("seats"),
-  transmission: varchar("transmission", { length: 50 }),
-  fuelType: varchar("fuelType", { length: 50 }),
-  available: integer("available").default(1).notNull(),
-  badge: varchar("badge", { length: 50 }),
-  createdAt: timestamp("createdAt").defaultNow().notNull(),
-  updatedAt: timestamp("updatedAt").defaultNow().notNull(),
+  id: integer("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  price_per_day: doublePrecision("price_per_day").notNull(),
+  image_url: text("image_url"),
+  description: text("description"),
+  is_available: boolean("is_available").default(true).notNull(),
 });
 
 export type Car = typeof cars.$inferSelect;

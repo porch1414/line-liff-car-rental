@@ -9,7 +9,7 @@ import { useAuth } from "@/_core/hooks/useAuth";
 import { useLiffContext } from "@/contexts/LiffContext";
 import { useBooking } from "@/contexts/BookingContext";
 import { CarCard } from "@/components/CarCard";
-import { categories, filterCars, HERO_IMAGE, type CarCategory } from "@/lib/carData";
+import { categories, HERO_IMAGE, type CarCategory } from "@/lib/carData";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -26,8 +26,8 @@ export default function Home() {
   const { data: liveCars = [], isLoading: carsLoading } = trpc.cars.list.useQuery();
 
   // Filter cars based on category
-  const filteredCars = filterCars(liveCars, activeCategory).filter((c) => c.available);
-  const featuredCars = liveCars.filter((c) => c.badge && c.available).slice(0, 3);
+  const filteredCars = liveCars.filter((c) => c.is_available);
+  const featuredCars = liveCars.slice(0, 3);
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -191,7 +191,7 @@ export default function Home() {
           </div>
         ) : (
           <div className="grid grid-cols-1 gap-4">
-            {filteredCars.map((car, i) => (
+            {filteredCars.map((car: typeof filteredCars[0], i: number) => (
               <div
                 key={car.id}
                 className="animate-slide-up"

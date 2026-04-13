@@ -7,7 +7,7 @@ import { useLocation } from "wouter";
 import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
 import { CarCard } from "@/components/CarCard";
 import { useBooking } from "@/contexts/BookingContext";
-import { categories, filterCars, type CarCategory } from "@/lib/carData";
+import { categories, type CarCategory } from "@/lib/carData";
 import { trpc } from "@/lib/trpc";
 
 export default function Cars() {
@@ -18,12 +18,11 @@ export default function Cars() {
   const [showUnavailable, setShowUnavailable] = useState(false);
   const { data: liveCars = [], isLoading } = trpc.cars.list.useQuery();
 
-  const filtered = filterCars(liveCars, activeCategory).filter((car) => {
+  const filtered = liveCars.filter((car) => {
     const matchesSearch =
       searchQuery === "" ||
-      car.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      car.brand.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesAvailability = showUnavailable || car.available;
+      car.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesAvailability = showUnavailable || car.is_available;
     return matchesSearch && matchesAvailability;
   });
 
@@ -73,7 +72,7 @@ export default function Cars() {
       {/* Category Pills */}
       <div className="max-w-[480px] mx-auto px-4 mt-4">
         <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
-          {categories.map((cat) => (
+          {categories.map((cat: CarCategory) => (
             <button
               key={cat}
               className={`pill-filter ${activeCategory === cat ? "active" : ""}`}
