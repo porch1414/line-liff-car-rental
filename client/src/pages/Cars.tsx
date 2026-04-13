@@ -2,13 +2,21 @@
  * Cars – Full car listing page with search and filters
  * Design: Coastal Breeze
  */
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useLocation } from "wouter";
 import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
 import { CarCard } from "@/components/CarCard";
 import { useBooking } from "@/contexts/BookingContext";
-import { categories, type CarCategory } from "@/lib/carData";
-import { trpc } from "@/lib/trpc";
+import { categories, type CarCategory, type Car } from "@/lib/carData";
+
+interface ApiCar {
+  id: number;
+  name: string;
+  pricePerDay: number;
+  imageUrl: string;
+  description: string;
+  isAvailable: boolean;
+}
 
 export default function Cars() {
   const [, navigate] = useLocation();
@@ -16,7 +24,35 @@ export default function Cars() {
   const [activeCategory, setActiveCategory] = useState<CarCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showUnavailable, setShowUnavailable] = useState(false);
-  const { data: liveCars = [], isLoading } = trpc.cars.list.useQuery();
+  const [liveCars, setLiveCars] = useState<Car[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchCars = async () => {
+      try {
+        setIsLoading(true);
+        const response = await fetch("/api/cars");
+        if (!response.ok) throw new Error("Failed to fetch cars");
+        const data = await response.json();
+        // Transform API response to match Car type
+        const transformedCars: Car[] = (data.result.data || []).map((apiCar: ApiCar) => ({
+          id: apiCar.id,
+          name: apiCar.name,
+          price_per_day: apiCar.pricePerDay,
+          image_url: apiCar.imageUrl,
+          description: apiCar.description,
+          is_available: apiCar.isAvailable,
+        }));
+        setLiveCars(transformedCars);
+      } catch (error) {
+        console.error("Error fetching cars:", error);
+        setLiveCars([]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchCars();
+  }, []);
 
   const filtered = liveCars.filter((car) => {
     const matchesSearch =
@@ -26,7 +62,7 @@ export default function Cars() {
     return matchesSearch && matchesAvailability;
   });
 
-  const handleCarSelect = (car: (typeof liveCars)[0]) => {
+  const handleCarSelect = (car: typeof liveCars[0]) => {
     selectCar(car);
     navigate(`/cars/${car.id}`);
   };
