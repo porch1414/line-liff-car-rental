@@ -3,10 +3,13 @@
  * Design: Coastal Breeze
  */
 import { useLocation } from "wouter";
-import { CalendarCheck, Car, ChevronRight, Clock, CheckCircle2, XCircle } from "lucide-react";
+import { CalendarCheck, Car, ChevronRight, Clock, CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { useBooking, type Booking } from "@/contexts/BookingContext";
 import { formatPrice } from "@/lib/carData";
 import { toast } from "sonner";
+import { useLiffContext } from "@/contexts/LiffContext";
+import { trpc } from "@/lib/trpc";
+import { transformBooking } from "@/lib/bookingTransform";
 
 const statusConfig = {
   confirmed: {
@@ -102,11 +105,26 @@ function BookingCard({ booking, onCancel }: { booking: Booking; onCancel: (id: s
 
 export default function Bookings() {
   const [, navigate] = useLocation();
-  const { bookings, cancelBooking } = useBooking();
+  const { cancelBooking } = useBooking();
+  const { profile } = useLiffContext();
+  const { data: liveBookings = [], isLoading } = trpc.bookings.getByLineUserId.useQuery(
+    { lineUserId: profile?.userId || "" },
+    { enabled: !!profile?.userId }
+  );
+  const { data: allCars = [] } = trpc.cars.list.useQuery();
+
+  const bookings: Booking[] = (liveBookings as any[])
+    .map((dbBooking: any) => {
+      const car = (allCars as any[]).find((c: any) => c.id === dbBooking.carId);
+      const transformed = transformBooking(dbBooking, car);
+      return transformed as Booking;
+    })
+    .filter((b): b is Booking => b !== null);
 
   const handleCancel = (bookingId: string) => {
-    cancelBooking(bookingId);
-    toast.success("Booking cancelled successfully");
+    // In a real app, you would call a mutation to cancel the booking
+    // For now, just show a message
+    toast.info("Booking cancellation is not yet implemented");
   };
 
   return (
@@ -121,7 +139,11 @@ export default function Bookings() {
       </header>
 
       <div className="max-w-[480px] mx-auto px-4 mt-4">
-        {bookings.length === 0 ? (
+        {isLoading || !profile?.userId ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="animate-spin text-[oklch(0.42_0.09_200)]" size={32} />
+          </div>
+        ) : bookings.length === 0 ? (
           <div className="text-center py-20">
             <div className="w-20 h-20 rounded-full bg-[oklch(0.42_0.09_200/0.08)] flex items-center justify-center mx-auto mb-5">
               <CalendarCheck size={32} className="text-[oklch(0.42_0.09_200)]" />
@@ -149,15 +171,16 @@ export default function Bookings() {
           <div className="space-y-4">
             {bookings.map((booking, i) => (
               <div
-                key={booking.bookingId}
+                key={booking.id}
                 className="animate-slide-up"
                 style={{ animationDelay: `${i * 60}ms`, animationFillMode: "both" }}
               >
-                <BookingCard booking={booking} onCancel={handleCancel} />
+                <BookingCard booking={booking as any} onCancel={handleCancel} />
               </div>
             ))}
           </div>
-        )}
+        )
+        }
       </div>
     </div>
   );

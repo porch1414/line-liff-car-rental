@@ -4,10 +4,11 @@
  */
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search, SlidersHorizontal, X } from "lucide-react";
+import { Search, SlidersHorizontal, X, Loader2 } from "lucide-react";
 import { CarCard } from "@/components/CarCard";
 import { useBooking } from "@/contexts/BookingContext";
-import { cars, categories, filterCars, type CarCategory } from "@/lib/carData";
+import { categories, filterCars, type CarCategory } from "@/lib/carData";
+import { trpc } from "@/lib/trpc";
 
 export default function Cars() {
   const [, navigate] = useLocation();
@@ -15,8 +16,9 @@ export default function Cars() {
   const [activeCategory, setActiveCategory] = useState<CarCategory>("All");
   const [searchQuery, setSearchQuery] = useState("");
   const [showUnavailable, setShowUnavailable] = useState(false);
+  const { data: liveCars = [], isLoading } = trpc.cars.list.useQuery();
 
-  const filtered = filterCars(cars, activeCategory).filter((car) => {
+  const filtered = filterCars(liveCars, activeCategory).filter((car) => {
     const matchesSearch =
       searchQuery === "" ||
       car.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -25,7 +27,7 @@ export default function Cars() {
     return matchesSearch && matchesAvailability;
   });
 
-  const handleCarSelect = (car: typeof cars[0]) => {
+  const handleCarSelect = (car: (typeof liveCars)[0]) => {
     selectCar(car);
     navigate(`/cars/${car.id}`);
   };
@@ -85,10 +87,16 @@ export default function Cars() {
 
       {/* Results */}
       <div className="max-w-[480px] mx-auto px-4 mt-4">
-        <p className="text-xs text-muted-foreground mb-3">
-          {filtered.length} car{filtered.length !== 1 ? "s" : ""} found
-        </p>
-        {filtered.length === 0 ? (
+        {isLoading ? (
+          <div className="flex items-center justify-center py-16">
+            <Loader2 className="animate-spin text-[oklch(0.42_0.09_200)]" size={32} />
+          </div>
+        ) : (
+          <>
+            <p className="text-xs text-muted-foreground mb-3">
+              {filtered.length} car{filtered.length !== 1 ? "s" : ""} found
+            </p>
+            {filtered.length === 0 ? (
           <div className="text-center py-16">
             <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mx-auto mb-4">
               <Search size={24} className="text-muted-foreground" />
@@ -98,18 +106,20 @@ export default function Cars() {
             </p>
             <p className="text-sm text-muted-foreground">Try adjusting your search or filters</p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4">
-            {filtered.map((car, i) => (
-              <div
-                key={car.id}
-                className="animate-slide-up"
-                style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
-              >
-                <CarCard car={car} onClick={handleCarSelect} />
+            ) : (
+              <div className="grid grid-cols-1 gap-4">
+                {filtered.map((car, i) => (
+                  <div
+                    key={car.id}
+                    className="animate-slide-up"
+                    style={{ animationDelay: `${i * 50}ms`, animationFillMode: "both" }}
+                  >
+                    <CarCard car={car} onClick={handleCarSelect} />
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </div>
