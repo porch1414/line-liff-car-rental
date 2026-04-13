@@ -1,4 +1,4 @@
-import type { Booking as DBBooking, Car } from "@/lib/carData";
+import type { Car } from "@/lib/carData";
 
 export interface BookingDisplay {
   id: string;
