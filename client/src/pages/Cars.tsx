@@ -31,7 +31,7 @@ export default function Cars() {
     const fetchCars = async () => {
       try {
         setIsLoading(true);
-        const response = await fetch("/api/cars");
+        const response = await fetch("/cars.json");
         if (!response.ok) throw new Error("Failed to fetch cars");
         const data = await response.json();
         // Transform API response to match Car type
