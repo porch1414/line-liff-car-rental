@@ -2,7 +2,18 @@
  * LoadingScreen – LIFF initialization loading state
  * Design: Coastal Breeze — teal branded loading with animated car
  */
+import { useEffect, useState } from "react";
+
 export function LoadingScreen() {
+  const [elapsed, setElapsed] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setElapsed((e) => e + 1);
+    }, 1000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="fixed inset-0 bg-[oklch(0.42_0.09_200)] flex flex-col items-center justify-center z-50">
       <div className="animate-slide-up text-center">
@@ -35,7 +46,20 @@ export function LoadingScreen() {
             />
           ))}
         </div>
-        <p className="text-white/50 text-xs mt-4">Connecting to LINE…</p>
+        <p className="text-white/50 text-xs mt-4">
+          {elapsed < 5 ? "Connecting to LINE…" : "Initializing app..."}
+        </p>
+
+        {elapsed > 10 && (
+          <div className="mt-8 px-6 text-center">
+            <p className="text-white/60 text-xs mb-2">
+              Taking longer than expected. Make sure your LIFF ID is configured correctly.
+            </p>
+            <p className="text-white/40 text-[10px]">
+              Check the browser console for details.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );

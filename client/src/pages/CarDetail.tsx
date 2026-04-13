@@ -8,13 +8,14 @@ import { ArrowLeft, Star, Users, Fuel, Settings, Check, MapPin, Calendar } from 
 import { cars, formatPrice } from "@/lib/carData";
 import { useBooking } from "@/contexts/BookingContext";
 import { useLiffContext } from "@/contexts/LiffContext";
+import { sendBookingConfirmation } from "@/lib/liffMessaging";
 import { toast } from "sonner";
 
 export default function CarDetail() {
   const { id } = useParams<{ id: string }>();
   const [, navigate] = useLocation();
   const { confirmBooking } = useBooking();
-  const { isLoggedIn, login } = useLiffContext();
+  const { isLoggedIn, login, liff } = useLiffContext();
 
   const car = cars.find((c) => c.id === id);
 
@@ -60,9 +61,21 @@ export default function CarDetail() {
     setIsBooking(true);
     await new Promise((r) => setTimeout(r, 1200));
     const booking = confirmBooking(car, { pickupDate, returnDate, pickupLocation });
+    
+    // Send booking confirmation to LINE chat
+    const messageSent = await sendBookingConfirmation(liff, {
+      car,
+      pickupDate,
+      returnDate,
+      totalDays,
+      totalPrice,
+      pickupLocation,
+      bookingId: booking.bookingId,
+    });
+    
     setIsBooking(false);
     toast.success(`Booking confirmed! ID: ${booking.bookingId}`, {
-      description: `${car.brand} ${car.name} · ${totalDays} day${totalDays > 1 ? "s" : ""}`,
+      description: `${car.brand} ${car.name} · ${totalDays} day${totalDays > 1 ? "s" : ""} · Message sent to LINE`,
     });
     navigate("/bookings");
   };
