@@ -1,0 +1,10 @@
+{
+  "buildCommand": "pnpm install && pnpm vite build --config vite.config.prod.ts",
+  "outputDirectory": "dist/public",
+  "installCommand": "pnpm install",
+  "framework": "vite",
+  "rewrites": [
+    { "source": "/api/trpc/(.*)", "destination": "/api/server" },
+    { "source": "/(.*)", "destination": "/index.html" }
+  ]
+}
