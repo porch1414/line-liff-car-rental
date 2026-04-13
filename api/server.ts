@@ -1,50 +1,56 @@
-import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import express from "express";
+import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { appRouter } from "../server/routers";
 import { createContext } from "../server/_core/context";
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 
-// Create Express app for handling tRPC routes
-const app = express();
+export default async function handler(
+  req: VercelRequest,
+  res: VercelResponse
+) {
+  try {
+    // Handle CORS
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,OPTIONS,PATCH,DELETE,POST,PUT"
+    );
+    res.setHeader(
+      "Access-Control-Allow-Headers",
+      "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
+    );
 
-app.use(express.json({ limit: "50mb" }));
-app.use(express.urlencoded({ limit: "50mb", extended: true }));
+    if (req.method === "OPTIONS") {
+      res.status(200).end();
+      return;
+    }
 
-app.use(
-  "/api/trpc",
-  createExpressMiddleware({
-    router: appRouter,
-    createContext,
-  })
-);
-
-// Vercel serverless handler
-export default function handler(req: VercelRequest, res: VercelResponse) {
-  // Handle CORS
-  res.setHeader("Access-Control-Allow-Credentials", "true");
-  res.setHeader("Access-Control-Allow-Origin", "*");
-  res.setHeader(
-    "Access-Control-Allow-Methods",
-    "GET,OPTIONS,PATCH,DELETE,POST,PUT"
-  );
-  res.setHeader(
-    "Access-Control-Allow-Headers",
-    "X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version"
-  );
-
-  if (req.method === "OPTIONS") {
-    res.status(200).end();
-    return;
-  }
-
-  // Use Express to handle the request
-  return new Promise((resolve) => {
-    app(req as any, res as any, (err?: any) => {
-      if (err) {
-        console.error("Express error:", err);
-        res.status(500).json({ error: "Internal server error" });
-      }
-      resolve(undefined);
+    // Use tRPC fetch adapter to handle the request
+    const response = await fetchRequestHandler({
+      endpoint: "/api/trpc",
+      req: req as any,
+      router: appRouter,
+      createContext: async () => {
+        return createContext({
+          req: req as any,
+          res: res as any,
+        });
+      },
     });
-  });
+
+    // Set response headers
+    response.headers.forEach((value, key) => {
+      res.setHeader(key, value);
+    });
+
+    // Send response
+    res.status(response.status);
+    res.send(await response.text());
+  } catch (error) {
+    console.error("tRPC handler error:", error);
+    res.status(500).json({
+      error: "Internal server error",
+      message: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
 }
