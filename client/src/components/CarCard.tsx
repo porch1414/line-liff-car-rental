@@ -27,7 +27,7 @@ export function CarCard({ car, onClick }: CarCardProps) {
       {/* Car image */}
       <div className="relative h-44 bg-[oklch(0.96_0.01_90)] overflow-hidden">
         <img
-          src={car.image}
+          src={car.image || ""}
           alt={`${car.brand} ${car.name}`}
           className="w-full h-full object-contain p-3 transition-transform duration-300 hover:scale-105"
           loading="lazy"
@@ -68,7 +68,7 @@ export function CarCard({ car, onClick }: CarCardProps) {
         <div className="flex items-center gap-1 mb-3">
           <Star size={12} className="fill-[oklch(0.72_0.16_65)] text-[oklch(0.72_0.16_65)]" />
           <span className="text-xs font-semibold text-foreground">{car.rating}</span>
-          <span className="text-xs text-muted-foreground">({car.reviewCount})</span>
+          <span className="text-xs text-muted-foreground">({car.reviews})</span>
         </div>
 
         {/* Specs row */}
@@ -83,7 +83,7 @@ export function CarCard({ car, onClick }: CarCardProps) {
           </span>
           <span className="flex items-center gap-1">
             <Fuel size={12} />
-            {car.fuel}
+            {car.fuelType}
           </span>
         </div>
       </div>

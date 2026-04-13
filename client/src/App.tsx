@@ -22,11 +22,11 @@ import NotFound from "./pages/NotFound";
 
 function AppContent() {
   const { isLoading } = useLiffContext();
-
   if (isLoading) {
     return <LoadingScreen />;
   }
 
+  // make sure to consider if you need authentication for certain routes
   return (
     <div className="min-h-screen bg-background">
       <Switch>

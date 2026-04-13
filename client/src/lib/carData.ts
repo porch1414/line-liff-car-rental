@@ -5,21 +5,23 @@
 
 export type CarCategory = "All" | "Sedan" | "SUV" | "Compact" | "Van";
 
+// Car type is inferred from Drizzle schema
 export interface Car {
   id: string;
   name: string;
   brand: string;
-  category: CarCategory;
+  category: string;
   pricePerDay: number;
-  seats: number;
-  transmission: "Auto" | "Manual";
-  fuel: "Petrol" | "Diesel" | "Hybrid" | "Electric";
-  image: string;
-  rating: number;
-  reviewCount: number;
-  features: string[];
-  available: boolean;
-  badge?: string;
+  seats: number | null;
+  transmission: string | null;
+  fuelType: string | null;
+  image: string | null;
+  rating: number | null;
+  reviews: number | null;
+  available: number;
+  badge: string | null;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 export const HERO_IMAGE = "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/hero-banner-LxjhdqwrKidJf85T922ays.webp";
@@ -33,13 +35,14 @@ export const cars: Car[] = [
     pricePerDay: 1200,
     seats: 5,
     transmission: "Auto",
-    fuel: "Hybrid",
+    fuelType: "Hybrid",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-sedan-TE4VMo84jW7fCEa9C52JcF.webp",
     rating: 4.8,
-    reviewCount: 142,
-    features: ["Bluetooth", "Backup Camera", "Lane Assist", "Cruise Control"],
-    available: true,
+    reviews: 142,
+    available: 1,
     badge: "Popular",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "c2",
@@ -49,13 +52,14 @@ export const cars: Car[] = [
     pricePerDay: 1600,
     seats: 5,
     transmission: "Auto",
-    fuel: "Petrol",
+    fuelType: "Petrol",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-suv-PkEReVAunyP6htRoxHepgK.webp",
     rating: 4.7,
-    reviewCount: 98,
-    features: ["AWD", "Sunroof", "Apple CarPlay", "Heated Seats"],
-    available: true,
+    reviews: 98,
+    available: 1,
     badge: "New",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "c3",
@@ -65,13 +69,14 @@ export const cars: Car[] = [
     pricePerDay: 750,
     seats: 5,
     transmission: "Auto",
-    fuel: "Petrol",
+    fuelType: "Petrol",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-compact-DjfoquXLP9LnMKfqgxm5ER.webp",
     rating: 4.5,
-    reviewCount: 211,
-    features: ["Fuel Efficient", "Easy Parking", "Bluetooth", "USB Charging"],
-    available: true,
+    reviews: 211,
+    available: 1,
     badge: "Best Value",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "c4",
@@ -81,12 +86,14 @@ export const cars: Car[] = [
     pricePerDay: 2200,
     seats: 12,
     transmission: "Manual",
-    fuel: "Diesel",
+    fuelType: "Diesel",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-van-FckKaYKkFnfMjr8CqeD8GX.webp",
     rating: 4.6,
-    reviewCount: 67,
-    features: ["12 Seats", "Large Cargo", "AC", "GPS Navigation"],
-    available: true,
+    reviews: 67,
+    available: 1,
+    badge: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "c5",
@@ -96,12 +103,14 @@ export const cars: Car[] = [
     pricePerDay: 1350,
     seats: 5,
     transmission: "Auto",
-    fuel: "Hybrid",
+    fuelType: "Hybrid",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-sedan-TE4VMo84jW7fCEa9C52JcF.webp",
     rating: 4.6,
-    reviewCount: 89,
-    features: ["Wireless Charging", "Honda Sensing", "Sunroof", "Leather Seats"],
-    available: false,
+    reviews: 89,
+    available: 0,
+    badge: null,
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
   {
     id: "c6",
@@ -111,13 +120,14 @@ export const cars: Car[] = [
     pricePerDay: 1900,
     seats: 7,
     transmission: "Auto",
-    fuel: "Diesel",
+    fuelType: "Diesel",
     image: "https://d2xsxph8kpxj0f.cloudfront.net/310519663549312228/Kw6FodCzAqfHhtkur2wrWq/car-suv-PkEReVAunyP6htRoxHepgK.webp",
     rating: 4.9,
-    reviewCount: 134,
-    features: ["4WD", "7 Seats", "Tow Hitch", "Off-Road Ready"],
-    available: true,
+    reviews: 134,
+    available: 1,
     badge: "Premium",
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
 ];
 

@@ -4,21 +4,30 @@
  */
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { Search, MapPin, Bell, ChevronRight, Sparkles } from "lucide-react";
+import { Search, MapPin, Bell, ChevronRight, Sparkles, Loader2 } from "lucide-react";
+import { useAuth } from "@/_core/hooks/useAuth";
 import { useLiffContext } from "@/contexts/LiffContext";
 import { useBooking } from "@/contexts/BookingContext";
 import { CarCard } from "@/components/CarCard";
-import { cars, categories, filterCars, HERO_IMAGE, type CarCategory } from "@/lib/carData";
+import { categories, filterCars, HERO_IMAGE, type CarCategory } from "@/lib/carData";
+import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
 export default function Home() {
+  // The userAuth hooks provides authentication state
+  let { user, loading, error, isAuthenticated, logout } = useAuth();
+
   const { profile, isLoggedIn } = useLiffContext();
   const { selectCar } = useBooking();
   const [, navigate] = useLocation();
   const [activeCategory, setActiveCategory] = useState<CarCategory>("All");
 
-  const filteredCars = filterCars(cars, activeCategory).filter((c) => c.available);
-  const featuredCars = cars.filter((c) => c.badge && c.available).slice(0, 3);
+  // Fetch live car data from tRPC API
+  const { data: liveCars = [], isLoading: carsLoading } = trpc.cars.list.useQuery();
+
+  // Filter cars based on category
+  const filteredCars = filterCars(liveCars, activeCategory).filter((c) => c.available);
+  const featuredCars = liveCars.filter((c) => c.badge && c.available).slice(0, 3);
 
   const greeting = () => {
     const hour = new Date().getHours();
@@ -27,7 +36,7 @@ export default function Home() {
     return "Good evening";
   };
 
-  const handleCarSelect = (car: typeof cars[0]) => {
+  const handleCarSelect = (car: typeof liveCars[0]) => {
     selectCar(car);
     navigate(`/cars/${car.id}`);
   };
@@ -136,8 +145,15 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Loading State */}
+      {carsLoading && (
+        <div className="flex items-center justify-center py-12">
+          <Loader2 className="animate-spin text-[oklch(0.42_0.09_200)]" size={24} />
+        </div>
+      )}
+
       {/* Featured Cars */}
-      {activeCategory === "All" && featuredCars.length > 0 && (
+      {!carsLoading && activeCategory === "All" && featuredCars.length > 0 && (
         <section className="mt-5 px-4">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-bold text-foreground" style={{ fontFamily: "'Sora', sans-serif" }}>
