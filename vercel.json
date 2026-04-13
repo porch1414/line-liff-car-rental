@@ -3,9 +3,13 @@
   "outputDirectory": "dist/public",
   "installCommand": "pnpm install",
   "framework": "vite",
+  "functions": {
+    "api/**/*.ts": {
+      "runtime": "nodejs18.x"
+    }
+  },
   "rewrites": [
     { "source": "/api/trpc/(.*)", "destination": "/api/server" },
-    { "source": "/api/cars", "destination": "/api/cars" },
     { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
