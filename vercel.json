@@ -10,6 +10,6 @@
   },
   "rewrites": [
     { "source": "/api/trpc/(.*)", "destination": "/api/server" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/(?!cars\.json)(.*)", "destination": "/index.html" }
   ]
 }
